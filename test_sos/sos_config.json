@@ -1,0 +1,18 @@
+{
+    "sosd":{
+        "SOS_WORK_DIR":"/home/khuck/src/Example-Heat_Transfer",
+        "SOS_EVPATH_MEETUP":"/home/khuck/src/Example-Heat_Transfer",
+        "SOS_CMD_PORT":"22500"
+    },
+    "outputdir":"/home/khuck/src/Example-Heat_Transfer",
+	"output_text":true,
+	"output_adios":true,
+	"adios_method":"POSIX",
+    "aggregators":{
+        "count":1,
+        "expected_pubs":1,
+        "runtime":true,
+        "maxframe":100
+    },
+	"clean_database_after_frame":false
+}

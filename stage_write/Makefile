@@ -1,13 +1,17 @@
-CC=cc
-FC=ftn
-CFLAGS=-g -O3
-FFLAGS=-g -Wall -fcheck=bounds #-fcheck=array-temps
+CC=tau_cc.sh
+FC=tau_F90.sh
+#CC=mpicc
+#FC=mpif90
+#sanitize=-fsanitize=address
+CFLAGS=-g -Og ${sanitize}
+FFLAGS=-g -Og -Wall ${sanitize} #-fcheck=bounds #-fcheck=array-temps
+LDFLAGS=-g -Og ${sanitize}
 
 ## ADIOS_DIR/bin should in PATH env
 ADIOS_INC=$(shell adios_config -c)
 ADIOS_CLIB=$(shell adios_config -l)
 
-default: clean stage_write 
+default: clean stage_write
 all: default
 
 OBJS = utils.o decompose_block.o 
@@ -16,6 +20,7 @@ OBJS = utils.o decompose_block.o
 	${CC} ${CFLAGS} -c ${ADIOS_INC} $<
 
 stage_write: ${OBJS} stage_write.o
+
 	${CC} ${LDFLAGS} -o stage_write ${OBJS} stage_write.o ${ADIOS_CLIB}
 	@echo "Done"
 

@@ -1,6 +1,6 @@
-CC=cc
+CC=tau_cc.sh
 #CC=tau_cc.sh
-FC=ftn
+FC=tau_f90.sh
 CFLAGS=-g -O3
 FFLAGS=-g -Wall -fcheck=bounds #-fcheck=array-temps
 

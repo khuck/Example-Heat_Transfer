@@ -1,5 +1,7 @@
-CC=cc
-FC=ftn
+CC=tau_cc.sh
+FC=tau_f90.sh
+#CC=mpicc
+#FC=mpif90
 CFLAGS=-g -O3
 FFLAGS=-g -O3 -Wall -fcheck=bounds #-fcheck=array-temps
 
