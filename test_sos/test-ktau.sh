@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# cleanup
-rm -rf staged.bp* conf ht.out sw.out sosd.* tau-metrics.*
+# cleanup, just in case
+rm -rf staged.bp* conf ht.out sw.out sosd.* tau-metrics.* *_profiles
+killall -9 mpirun dataspaces_server sosd
+
+set -e
 
 # link executables
 if [ ! -f dataspaces.conf ] ; then
@@ -26,56 +29,69 @@ if [ ! -f stage_write ] ; then
     ln -s  ../stage_write/stage_write stage_write 
 fi
 
-echo "Launching Dataspaces..."
-./dataspaces_server -s 1 -c 8 >& ds.out &
-
-while [ ! -f conf ]; do
-    sleep 1s
-done
-
-while read line; do
-    if [[ "$line" == *"="* ]]; then
-        export ${line}
-    fi
-done < conf
-
 export SOS_CMD_PORT=22500
 export SOS_WORK=`pwd`
 export SOS_EVPATH_MEETUP=`pwd`
+export SOS_BATCH_ENVIRONMENT=1
+export SOS_IN_MEMORY_DATABASE=1
 
-adiospath=$HOME/src/ADIOS/ADIOS-gcc/lib/python
-adiospath2=$HOME/src/ADIOS/ADIOS-gcc/lib/python2.7/site-packages
-sospath=$HOME/src/sos_flow/build
-export PATH=$PATH:$sospath/bin
-export PYTHONPATH=$sospath/bin:$sospath/lib:$PYTHONPATH:`pwd`:$adiospath2
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`:$sospath/lib:$adiospath2:/home/khuck/install/chaos-stable/lib
+sos_launch() {
+    adiospath=$HOME/src/ADIOS/ADIOS-gcc/lib/python
+    adiospath2=$HOME/src/ADIOS/ADIOS-gcc/lib/python2.7/site-packages
+    sospath=$HOME/src/sos_flow/build
+    export PATH=$PATH:$sospath/bin
+    export PYTHONPATH=$sospath/bin:$sospath/lib:$PYTHONPATH:`pwd`:$adiospath2
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`:$sospath/lib:$adiospath2:/home/khuck/install/chaos-stable/lib
 
-echo "Launching SOS..."
-./sosd -l 0 -a 1 -k 0 -r aggregator -w ${SOS_WORK} >& sosd.out &
-sleep 1
-echo "Launching ADIOS trace export from SOS..."
-#LD_PRELOAD=/home/khuck/install/chaos-stable/lib/libatl.so:/home/khuck/install/chaos-stable/lib/libevpath.so python $HOME/src/sos_flow_experiments/sos_scripts/tau_trace_adios.py &
-sleep 1
+    echo "Launching SOS..."
+    #/usr/local/bin/heaptrack ./sosd -l 0 -a 1 -k 0 -r aggregator -w ${SOS_WORK} >& sosd.out &
+    ./sosd -l 0 -a 1 -k 0 -r aggregator -w ${SOS_WORK} >& sosd.out &
+    sleep 1
+    echo "Launching ADIOS trace export from SOS..."
+    LD_PRELOAD=/home/khuck/install/chaos-stable/lib/libatl.so:/home/khuck/install/chaos-stable/lib/libevpath.so python $HOME/src/sos_flow_experiments/sos_scripts/tau_profile_adios.py >& sosa.out &
+    sleep 2
+}
 
-# to use periodic, enable this variable, and comment out the
-# TAU_SOS_send_data() call in matmult.c.
-export TAU_SOS_PERIODIC=1
-#export TAU_SOS_PERIOD=1000000
-export TAU_SOS_HIGH_RESOLUTION=1
-export TAU_SOS=1
-export TAU_PLUGINS=libTAU-sos-plugin.so
-export TAU_PLUGINS_PATH=/home/khuck/src/tau2/x86_64/lib/shared-papi-mpi-pthread-pdt-sos-adios
+dspace() {
+    echo "Launching Dataspaces..."
+    ./dataspaces_server -s 1 -c 8 &
 
-echo "Launching heat_transfer_adios..."
-export PROFILEDIR=writer_profiles
-mpirun -np 6 ./heat_transfer_adios2 heat  3 2 120 50  10 500 >& ht.out &
-sleep 1
+    while [ ! -f conf ]; do
+        sleep 1s
+    done
 
-echo "Launching stage_write..."
-export PROFILEDIR=reader_profiles
-mpirun -np 2 ./stage_write heat.bp staged.bp DATASPACES "" MPI "" >& sw.out 
-echo "done, exiting..."
-sleep 2
+    while read line; do
+        if [[ "$line" == *"="* ]]; then
+            export ${line}
+        fi
+    done < conf
+}
 
+workflow() {
+    # to use periodic, enable this variable
+    #export TAU_SOS_PERIODIC=1
+    #export TAU_SOS_PERIOD=1000000
+    export TAU_PLUGINS=libTAU-sos-plugin.so
+    export TAU_PLUGINS_PATH=/home/khuck/src/tau2/x86_64/lib/shared-papi-mpi-pthread-pdt-sos-adios
+
+    echo "Launching heat_transfer_adios..."
+    export PROFILEDIR=writer_profiles
+    mpirun -np 6 ./heat_transfer_adios2 heat  3 2 120 50  50 500 & # >& ht.out &
+    sleep 1
+
+    echo "Launching stage_write..."
+    export PROFILEDIR=reader_profiles
+    mkdir reader_profiles
+    export TAU_PROFILE_FORMAT=merged
+    export TAU_VERBOSE=1
+    mpirun -np 2 ./stage_write heat.bp staged.bp FLEXPATH "" MPI "" >& sw.out
+    echo "done, exiting..."
+    sleep 1
+}
+
+sos_launch
+#dspace
+workflow
 grep "Bye after processing" sw.out
-./sosd_stop >& /dev/null
+sleep 10
+./sosd_stop
