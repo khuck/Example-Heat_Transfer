@@ -189,7 +189,7 @@ cd test_sos
 vi test-sos.sh
 
 # Run!
-./test-sos.sh
+./test-simple.sh
 ```
 
 ### What is the example doing?
@@ -228,3 +228,6 @@ export PROFILEDIR=reader_profiles
 mpirun -np 2 ./stage_write heat.bp staged.bp FLEXPATH "" MPI ""
 ```
 
+## Another example
+
+The ```test-simple.sh``` script is similar, but what it does is read the TAU data from SOS, and writes out to an ADIOS file using the ```tau_profile_adios.py``` script.  This example is longer, but follows similar logic.
