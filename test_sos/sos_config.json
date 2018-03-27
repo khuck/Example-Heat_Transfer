@@ -12,7 +12,7 @@
         "count":1,
         "expected_pubs":8,
         "runtime":true,
-        "maxframe":100
+        "maxframe":12
     },
 	"clean_database_after_frame":false
 }

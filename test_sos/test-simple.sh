@@ -39,44 +39,23 @@ if [ ! -f sosd_stop ] ; then
     fi
     ln -s ${thepath} sosd_stop 
 fi
+
 export SOS_CMD_PORT=22500
 export SOS_WORK=`pwd`
 export SOS_EVPATH_MEETUP=`pwd`
-export SOS_BATCH_ENVIRONMENT=1
-#export SOS_IN_MEMORY_DATABASE=1
 
 sos_launch() {
-    adiospath=${HOME}/src/ADIOS/ADIOS-gcc/lib/python
-    adiospath2=${HOME}/src/ADIOS/ADIOS-gcc/lib/python2.7/site-packages
     sospath=${HOME}/install/sos_flow
     export PATH=$PATH:$sospath/bin
-    export PYTHONPATH=$sospath/bin:$sospath/lib:$PYTHONPATH:`pwd`:$adiospath2
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`:$sospath/lib:$adiospath2:${HOME}/install/chaos-stable/lib
+    export PYTHONPATH=$sospath/bin:$sospath/lib:$PYTHONPATH:`pwd`
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`:$sospath/lib:${HOME}/install/chaos-stable/lib
 
     echo "Launching SOS..."
-    #/usr/local/bin/heaptrack ./sosd -l 0 -a 1 -k 0 -r aggregator -w ${SOS_WORK} >& sosd.out &
     ./sosd -l 0 -a 1 -k 0 -r aggregator -w ${SOS_WORK} >& sosd.out &
     sleep 1
     echo "Launching ADIOS trace export from SOS..."
-    # Using LD_PRELOAD because the ADIOS build can't find the EVPath libraries
-    # by default, for some reason.  Even with the LD_LIBRARY_PATH set.
-    LD_PRELOAD=${HOME}/install/chaos-stable/lib/libatl.so:${HOME}/install/chaos-stable/lib/libevpath.so python ${HOME}/src/sos_flow_experiments/sos_scripts/tau_profile_adios.py >& sosa.out &
+    python ./simple.py >& sosa.out &
     sleep 2
-}
-
-dspace() {
-    echo "Launching Dataspaces..."
-    ./dataspaces_server -s 1 -c 8 &
-
-    while [ ! -f conf ]; do
-        sleep 1s
-    done
-
-    while read line; do
-        if [[ "$line" == *"="* ]]; then
-            export ${line}
-        fi
-    done < conf
 }
 
 workflow() {
@@ -100,9 +79,7 @@ workflow() {
 }
 
 sos_launch
-#dspace
 workflow
 grep "Bye after processing" sw.out
-# Waiting for SOS to finish ADIOS output
-sleep 4
+sleep 2
 ./sosd_stop
