@@ -4,7 +4,7 @@ ADIOS_CLIB=$(shell adios_config -l)
 LINKER=$(CC)
 
 ifeq ($(TAU),1)
-	CC=tau_cc.sh -optTauSelectFile=select.tau -optKeepFiles
+	CC=tau_cc.sh -optTauSelectFile=select.tau
 	ADIOS_CLIB=$(shell tau_cc.sh -tau:showlibs) $(shell adios_config -l)
 	LINKER=$(CC)
 endif

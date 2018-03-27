@@ -9,7 +9,7 @@ ADIOS_FLIB=$(shell adios_config -l -f)
 
 ifeq ($(TAU),1)
 	CC=tau_cc.sh
-	FC=tau_f90.sh -optTauSelectFile=select.tau -optKeepFiles
+	FC=tau_f90.sh -optTauSelectFile=select.tau
 	#FC=tau_f90.sh
 	ADIOS_FLIB=$(shell tau_cc.sh -tau:showlibs) $(shell adios_config -l -f)
 	LINKER=$(FC)
