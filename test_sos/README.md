@@ -151,7 +151,8 @@ cd tau2
 -papi=/usr/local/papi/5.5.0 \
 -sos=${HOME}/install/sos_flow \
 -mpi -pthread \
--adios=${HOME}/install/adios
+-adios=${HOME}/install/adios \
+-prefix=${HOME}/install/tau2 
 
 make install
 ```
@@ -177,6 +178,8 @@ make TAU=1
 cd ..
 ```
 
+## Running The example
+
 Edit the run script for your environment.  Please keep in mind that this example is configured for a single-node, 8 core workstation.  Cluster systems using PBS or Slurm will require submission scripts.  An example for that system is in ```test-sos-titan.sh```.
 
 ```bash
@@ -187,5 +190,41 @@ vi test-sos.sh
 
 # Run!
 ./test-sos.sh
+```
+
+### What is the example doing?
+
+First, filesystem links are made to the executables, if they don't already exist.  Then (optionally), the dataspaces server is launched (if using DATASPACES method for ADIOS).  By default, the example uses Flexpath.  The example then launches the ```sosd``` aggregator daemon to run on this node:
+
+```bash
+export SOS_CMD_PORT=22500
+export SOS_WORK=`pwd`
+export SOS_EVPATH_MEETUP=`pwd`
+./sosd -l 0 -a 1 -k 0 -r aggregator -w ${SOS_WORK} &
+```
+
+The environment variables control how SOS executes.  The default port is 22500, the default work directory is the current working directory, and the meetup location is used to connect sosd listeners to aggregators.  In this case, the aggregator will be the only daemon running.  The environment variables are set to be explicit.
+
+The arguments to sosd specify that there are zero listeners (-l 0), there is one aggregator (-a 1), that this daemon's rank is 0 (-k 0), that its role is an aggregator (-r aggregator), and that the work directory is the current working directory (also specified with the environment variable).
+
+Then, the sample SOS analysis/conversion script is launched:
+
+```bash
+python ./tau_profile_adios.py &
+```
+
+This python script reads the sos_config.json file in the current directory.  The configuration specifies how many sosd daemons to connect to, and how many publishers to expect (the total number of producers of SOS data). The script connects to the daemons using the *.key files found in the EVPath meetup directory.  The script then periodically queries the daemon to wait for all publishers to arrive at the same frame (timestep, period), and then extracts the data for that frame.
+
+After the sos script is launched, the applications are executed as normal.  The only difference is that there are some TAU environment variables that specify where the SOS plugin library is located.  The PROFILEDIR environment variable also specifies where the TAU profiles should be written at the end of execution.
+
+```bash
+export TAU_PLUGINS=libTAU-sos-plugin.so
+export TAU_PLUGINS_PATH=${HOME}/src/tau2/x86_64/lib/shared-papi-mpi-pthread-pdt-sos-adios
+
+export PROFILEDIR=writer_profiles
+mpirun -np 6 ./heat_transfer_adios2 heat  3 2 120 50  10 500 & 
+
+export PROFILEDIR=reader_profiles
+mpirun -np 2 ./stage_write heat.bp staged.bp FLEXPATH "" MPI ""
 ```
 
