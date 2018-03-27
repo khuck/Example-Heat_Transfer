@@ -15,7 +15,7 @@ First, make sure you have all the dependencies installed:
 
 ## Building Dependencies
 
-The following instructions assume all software will be installed in ```$HOME/install```.
+The following instructions are in bash, and assume all software will be installed in ```${HOME}/install```.
 
 ### EVPath
 
@@ -25,7 +25,7 @@ EVPath is typically installed with a few steps.  For more information, see [http
 # Get the build Perl script
 wget http://www.cc.gatech.edu/systems/projects/EVPath/chaos_bootstrap.pl
 # Run the script, specifying the version and installation location
-perl ./chaos_bootstrap.pl stable $HOME/install/chaos-stable
+perl ./chaos_bootstrap.pl stable ${HOME}/install/chaos-stable
 # Build!
 perl ./chaos_build.pl
 ```
@@ -43,9 +43,9 @@ cd sos_flow
 mkdir build && cd build
 cmake \
 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
--DCMAKE_INSTALL_PREFIX=$HOME/install/sos_flow \
--DSQLite3_DIR=$HOME/install/sqlite3 \
--DEVPath_DIR=$HOME/install/chaos-stable \
+-DCMAKE_INSTALL_PREFIX=${HOME}/install/sos_flow \
+-DSQLite3_DIR=${HOME}/install/sqlite3 \
+-DEVPath_DIR=${HOME}/install/chaos-stable \
 -DCMAKE_C_COMPILER=gcc \
 -DCMAKE_CXX_COMPILER=g++ \
 -DSOS_ENABLE_PYTHON=TRUE \
@@ -83,13 +83,13 @@ export LDFLAGS="-fPIC -g -O2"
 
 # Run the configure script - dataspaces and bzip2/zlib compression libraries are optional
 ./configure \
---prefix=$HOME/install/adios \
+--prefix=${HOME}/install/adios \
 --enable-shared \
 --disable-timers \
 --disable-maintainer-mode \
 --enable-dependency-tracking \
---with-flexpath=$HOME/install/chaos-stable \
---with-evpath=$HOME/install/chaos-stable \
+--with-flexpath=${HOME}/install/chaos-stable \
+--with-evpath=${HOME}/install/chaos-stable \
 --with-dataspaces=${dataspacesdir} \
 --with-bzip2 \
 --with-zlib
@@ -101,7 +101,7 @@ make install
 # Build the Python interface library
 #Have 'adios_config' and 'python' in the path!
 
-export PATH=$HOME/install/adios/bin:$PATH
+export PATH=${HOME}/install/adios/bin:$PATH
 cd wrappers/numpy
 
 # Build without MPI
@@ -109,14 +109,14 @@ make clean
 make python
 
 # Install
-python setup.py install --prefix=$HOME/install/adios
+python setup.py install --prefix=${HOME}/install/adios
 
 # MPI-enabled ADIOS wrapper can be built (MPI4Py is required):
 make clean
 make MPI=y python
 
 # Install
-python setup.py install --prefix=$HOME/install/adios
+python setup.py install --prefix=${HOME}/install/adios
 
 cd ../..
 ```
@@ -130,7 +130,7 @@ wget http://tau.uoregon.edu/pdt.tgz
 tar -xvzf pdt.tgz
 cd pdtoolkit-3.25
 
-./configure -GNU -prefix=$HOME/install/pdtoolkit-3.25
+./configure -GNU -prefix=${HOME}/install/pdtoolkit-3.25
 make
 make install
 ```
@@ -147,11 +147,11 @@ cd tau2
 
 # Configure and build
 ./configure \
--pdt=$HOME/install/pdtoolkit-3.25 \
+-pdt=${HOME}/install/pdtoolkit-3.25 \
 -papi=/usr/local/papi/5.5.0 \
--sos=$HOME/install/sos_flow \
+-sos=${HOME}/install/sos_flow \
 -mpi -pthread \
--adios=$HOME/install/adios
+-adios=${HOME}/install/adios
 
 make install
 ```
@@ -163,14 +163,14 @@ Now we can compile the Heat Transfer example with the TAU compiler, and link it 
 First, set your environment to have ADIOS and TAU in your path, and set the TAU_MAKEFILE environment variable (If you omitted PAPI from your TAU configuration, don't include the '-papi' in the TAU Makefile name):
 
 ```bash
-export PATH=$PATH:$HOME/install/adios/bin:$HOME/install/tau/x86_64/bin
-export TAU_MAKEFILE=$HOME/install/tau/x86_64/lib/Makefile.tau-papi-mpi-pthread-pdt-sos-adios
+export PATH=$PATH:${HOME}/install/adios/bin:${HOME}/install/tau/x86_64/bin
+export TAU_MAKEFILE=${HOME}/install/tau/x86_64/lib/Makefile.tau-papi-mpi-pthread-pdt-sos-adios
 ```
 
 Build with TAU:
 
 ```bash
-cd $HOME/src/Example-Heat_Transfer
+cd ${HOME}/src/Example-Heat_Transfer
 make TAU=1
 cd stage_write
 make TAU=1
