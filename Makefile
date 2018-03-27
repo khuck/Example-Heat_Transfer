@@ -1,15 +1,22 @@
-CC=tau_cc.sh
-FC=tau_f90.sh
-#CC=mpicc
-#FC=mpif90
-CFLAGS=-g -O3
-FFLAGS=-g -O3 -Wall -fcheck=bounds #-fcheck=array-temps
-
+CC=mpicc
+FC=mpif90
+LINKER=$(FC)
 
 ## ADIOS_DIR/bin should in PATH env
 ADIOS_DIR=$(shell adios_config -d)
 ADIOS_FINC=$(shell adios_config -c -f)
 ADIOS_FLIB=$(shell adios_config -l -f)
+
+ifeq ($(TAU),1)
+	CC=tau_cc.sh
+	FC=tau_f90.sh -optTauSelectFile=select.tau -optKeepFiles
+	#FC=tau_f90.sh
+	ADIOS_FLIB=$(shell tau_cc.sh -tau:showlibs) $(shell adios_config -l -f)
+	LINKER=$(FC)
+endif
+
+CFLAGS=-g -O3
+FFLAGS=-g -O3 -Wall -fcheck=bounds #-fcheck=array-temps
 
 default: clean adios2
 all: clean default
@@ -52,14 +59,14 @@ phdf5: heat_vars.o io_phdf5.o heat_transfer.o
 	libtool --mode=link --tag=FC ${FC} ${FFLAGS} -o heat_transfer_phdf5 $^ ${PHDF5_FLIB} 
 
 adios1: heat_vars.o io_adios_gpp.o heat_transfer.o
-	${FC} ${FFLAGS} -o heat_transfer_adios1 $^ ${ADIOS_FLIB} 
+	${LINKER} ${FFLAGS} -o heat_transfer_adios1 $^ ${ADIOS_FLIB} 
 
 adios2: heat_vars.o io_adios.o heat_transfer.o
-	${FC} ${FFLAGS} -o heat_transfer_adios2 $^ ${ADIOS_FLIB} 
+	${LINKER} ${FFLAGS} -o heat_transfer_adios2 $^ ${ADIOS_FLIB} 
 	@echo Done building
 
 noxml: heat_vars.o io_adios_noxml.o heat_transfer.o
-	${FC} ${FFLAGS} -o heat_transfer_noxml $^ ${ADIOS_FLIB} 
+	${LINKER} ${FFLAGS} -o heat_transfer_noxml $^ ${ADIOS_FLIB} 
 
 clean:
 	rm -f *.o *.mod *.fh core.*
