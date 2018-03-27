@@ -6,7 +6,7 @@ The following instructions assume a generic x86_64 cluster.
 
 First, make sure you have all the dependencies installed:
 
-* [EVPath](https://gtkorvo.github.io)
+* [EVPath](https://www.cc.gatech.edu/systems/projects/EVPath/)
 * [ADIOS](https://github.com/ornladios/ADIOS) : using the EVPath installation for Flexpath support
 * [SQLite3](https://www.sqlite.org)
 * [SOS](http://github.com/cdwdirect/sos_flow) : using the EVPath installation, see build instructions below
@@ -19,15 +19,15 @@ The following instructions assume all software will be installed in ```$HOME/ins
 
 ### EVPath
 
-EVPath is typically installed with a few steps.  For more information, see [https://gtkorvo.github.io](https://gtkorvo.github.io).
+EVPath is typically installed with a few steps.  For more information, see [https://www.cc.gatech.edu/systems/projects/EVPath/](https://www.cc.gatech.edu/systems/projects/EVPath/) or [https://gtkorvo.github.io](https://gtkorvo.github.io).
 
 ```bash
 # Get the build Perl script
-wget https://gtkorvo.github.io/korvo_bootstrap.pl
+wget http://www.cc.gatech.edu/systems/projects/EVPath/chaos_bootstrap.pl
 # Run the script, specifying the version and installation location
-perl ./korvo_bootstrap.pl stable $HOME/install/korvo-stable
+perl ./chaos_bootstrap.pl stable $HOME/install/chaos-stable
 # Build!
-perl ./korvo_build.pl
+perl ./chaos_build.pl
 ```
 
 ### SOS
@@ -45,7 +45,7 @@ cmake \
 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 -DCMAKE_INSTALL_PREFIX=$HOME/install/sos_flow \
 -DSQLite3_DIR=$HOME/install/sqlite3 \
--DEVPath_DIR=$HOME/install/korvo-stable \
+-DEVPath_DIR=$HOME/install/chaos-stable \
 -DCMAKE_C_COMPILER=gcc \
 -DCMAKE_CXX_COMPILER=g++ \
 -DSOS_ENABLE_PYTHON=TRUE \
@@ -88,8 +88,8 @@ export LDFLAGS="-fPIC -g -O2"
 --disable-timers \
 --disable-maintainer-mode \
 --enable-dependency-tracking \
---with-flexpath=$HOME/install/korvo-stable \
---with-evpath=$HOME/install/korvo-stable \
+--with-flexpath=$HOME/install/chaos-stable \
+--with-evpath=$HOME/install/chaos-stable \
 --with-dataspaces=${dataspacesdir} \
 --with-bzip2 \
 --with-zlib
