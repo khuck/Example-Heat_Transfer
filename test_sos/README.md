@@ -189,7 +189,7 @@ cd test_sos
 vi test-sos.sh
 
 # Run!
-./test-sos.sh
+./test-simple.sh
 ```
 
 ### What is the example doing?
@@ -210,10 +210,10 @@ The arguments to sosd specify that there are zero listeners (-l 0), there is one
 Then, the sample SOS analysis/conversion script is launched:
 
 ```bash
-python ./tau_profile_adios.py &
+python ./simple.py &
 ```
 
-This python script reads the sos_config.json file in the current directory.  The configuration specifies how many sosd daemons to connect to, and how many publishers to expect (the total number of producers of SOS data). The script connects to the daemons using the *.key files found in the EVPath meetup directory.  The script then periodically queries the daemon to wait for all publishers to arrive at the same frame (timestep, period), and then extracts the data for that frame.
+This python script reads the ```sos_config.json``` file in the current directory.  The configuration specifies how many sosd daemons to connect to, and how many publishers to expect (the total number of producers of SOS data). The script connects to the daemons using the '.key' files found in the EVPath meetup directory.  The script then periodically queries the daemon to wait for all publishers to arrive at the same frame (timestep, period), and then extracts the data for that frame.
 
 After the sos script is launched, the applications are executed as normal.  The only difference is that there are some TAU environment variables that specify where the SOS plugin library is located.  The PROFILEDIR environment variable also specifies where the TAU profiles should be written at the end of execution.
 
@@ -228,3 +228,6 @@ export PROFILEDIR=reader_profiles
 mpirun -np 2 ./stage_write heat.bp staged.bp FLEXPATH "" MPI ""
 ```
 
+## Another example
+
+The ```test-simple.sh``` script is similar, but what it does is read the TAU data from SOS, and writes out to an ADIOS file using the ```tau_profile_adios.py``` script.  This example is longer, but follows similar logic.
