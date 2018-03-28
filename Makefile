@@ -1,18 +1,21 @@
-CC=mpicc
-FC=mpif90
-LINKER=$(FC)
-
 ## ADIOS_DIR/bin should in PATH env
 ADIOS_DIR=$(shell adios_config -d)
 ADIOS_FINC=$(shell adios_config -c -f)
-ADIOS_FLIB=$(shell adios_config -l -f)
 
 ifeq ($(TAU),1)
 	CC=tau_cc.sh
 	FC=tau_f90.sh -optTauSelectFile=select.tau
-	#FC=tau_f90.sh
+	# Unfortunately, the TAU linker wrapper reorders libraries,
+	# and we want to ensure that the TAU libraries go before the
+	# ADIOS libraries in the link.  Therefore, use the regular
+	# linker but pass the TAU libraries and flags to the link.
 	ADIOS_FLIB=$(shell tau_cc.sh -tau:showlibs) $(shell adios_config -l -f)
+	LINKER=mpif90
+else
+	CC=mpicc
+	FC=mpif90
 	LINKER=$(FC)
+	ADIOS_FLIB=$(shell adios_config -l -f)
 endif
 
 CFLAGS=-g -O3

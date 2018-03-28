@@ -117,18 +117,19 @@ def waitForServer(SOS, frame):
     print "Looking for frame", str(frame)
     sqlFieldNames = "select count(distinct guid) from tblpubs where latest_frame > " + str(frame) + ";"
     maxframe = 0
-    waiting = True
-    while waiting:
+    timeouts = 0
+    while frame == 0 or timeouts < config["exit_after_n_timeouts"]:
         # query all aggregators
         results, col_names = queryAllAggregators(sqlFieldNames)
         arrived = [int(x[0]) for x in results]
         print arrived, "pubs have arrived at frame", frame
         if sum(arrived) >= sum_expected:
-            break
-        time.sleep(1.0)
-
-    # Everyone has arrived.
-    return
+            # Everyone has arrived.
+            return False
+        time.sleep(config["server_timeout"])
+        timeouts = timeouts + 1
+    # Too many timeouts, exit.
+    return True
 
 def cleanDB(SOS, frame):
     global config
@@ -144,7 +145,7 @@ def do_something(frame):
     sqlValsToColByRank = "select prog_name, comm_rank, value_name, coalesce(value,0.0) from viewCombined where value_name like 'TAU_TIMER:%' and frame = " + str(frame) + " order by prog_name, comm_rank, value_name;"
     results, col_names = queryAllAggregators(sqlValsToColByRank)
     end = time.time()
-    print (end-start), "seconds for timer query"
+    print (end-start), "seconds for query"
     print col_names
     for r in results:
         print r

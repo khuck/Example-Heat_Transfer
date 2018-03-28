@@ -39,10 +39,11 @@ if [ ! -f sosd_stop ] ; then
     fi
     ln -s ${thepath} sosd_stop 
 fi
+
 export SOS_CMD_PORT=22500
 export SOS_WORK=`pwd`
 export SOS_EVPATH_MEETUP=`pwd`
-export SOS_BATCH_ENVIRONMENT=1
+#export SOS_BATCH_ENVIRONMENT=1
 #export SOS_IN_MEMORY_DATABASE=1
 
 sos_launch() {
@@ -54,29 +55,13 @@ sos_launch() {
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`:$sospath/lib:$adiospath2:${HOME}/install/chaos-stable/lib
 
     echo "Launching SOS..."
-    #/usr/local/bin/heaptrack ./sosd -l 0 -a 1 -k 0 -r aggregator -w ${SOS_WORK} >& sosd.out &
     ./sosd -l 0 -a 1 -k 0 -r aggregator -w ${SOS_WORK} >& sosd.out &
     sleep 1
     echo "Launching ADIOS trace export from SOS..."
     # Using LD_PRELOAD because the ADIOS build can't find the EVPath libraries
     # by default, for some reason.  Even with the LD_LIBRARY_PATH set.
-    LD_PRELOAD=${HOME}/install/chaos-stable/lib/libatl.so:${HOME}/install/chaos-stable/lib/libevpath.so python ${HOME}/src/sos_flow_experiments/sos_scripts/tau_profile_adios.py >& sosa.out &
-    sleep 2
-}
-
-dspace() {
-    echo "Launching Dataspaces..."
-    ./dataspaces_server -s 1 -c 8 &
-
-    while [ ! -f conf ]; do
-        sleep 1s
-    done
-
-    while read line; do
-        if [[ "$line" == *"="* ]]; then
-            export ${line}
-        fi
-    done < conf
+    LD_PRELOAD=${HOME}/install/chaos-stable/lib/libatl.so:${HOME}/install/chaos-stable/lib/libevpath.so python ./plot_scatterplot_adios.py >& sosa.out &
+    sleep 1
 }
 
 workflow() {
@@ -85,10 +70,13 @@ workflow() {
     #export TAU_SOS_PERIOD=1000000
     export TAU_PLUGINS=libTAU-sos-plugin.so
     export TAU_PLUGINS_PATH=${HOME}/src/tau2/x86_64/lib/shared-papi-mpi-pthread-pdt-sos-adios
-
+    export TAU_SOS_SELECTION_FILE=`pwd`/sos_filter.txt
+    export TAU_METRICS=TIME:PAPI_FP_OPS:PAPI_TOT_INS
+ 
     echo "Launching heat_transfer_adios..."
     export PROFILEDIR=writer_profiles
-    mpirun -np 6 ./heat_transfer_adios2 heat  3 2 120 50  10 500 & # >& ht.out &
+    mkdir writer_profiles
+    mpirun -np 6 ./heat_transfer_adios2 heat  3 2 120 50  100 500 & # >& ht.out &
     sleep 1
 
     echo "Launching stage_write..."
@@ -100,9 +88,8 @@ workflow() {
 }
 
 sos_launch
-#dspace
 workflow
 grep "Bye after processing" sw.out
 # Waiting for SOS to finish ADIOS output
-sleep 4
+# sleep 10
 ./sosd_stop

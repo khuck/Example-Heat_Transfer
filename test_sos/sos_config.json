@@ -14,5 +14,21 @@
         "runtime":true,
         "maxframe":12
     },
-	"clean_database_after_frame":false
+	"server_timeout":1,
+	"exit_after_n_timeouts":3,
+	"clean_database_after_frame":false,
+    "events":{
+        "counters":[
+            "TAU_COUNTER:0:Max:Peak Memory Usage Resident Set Size (VmHWM) (KB)",
+            "TAU_COUNTER:0:Mean:Memory Footprint (VmRSS) (KB)"
+            ],
+        "timers":[
+            "TAU_TIMER:0:exclusive_PAPI_FP_OPS:TAU_USER:.TAU application",
+            "TAU_TIMER:0:exclusive_TIME:TAU_USER:.TAU application"
+            ],
+        "timer_scaling":[
+            1.0,
+            0.000001
+            ]
+    }
 }

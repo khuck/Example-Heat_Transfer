@@ -1,11 +1,15 @@
-CC=mpicc
-FC=mpif90
-ADIOS_CLIB=$(shell adios_config -l)
-LINKER=$(CC)
-
 ifeq ($(TAU),1)
 	CC=tau_cc.sh -optTauSelectFile=select.tau
+	# Unfortunately, the TAU linker wrapper reorders libraries,
+	# and we want to ensure that the TAU libraries go before the
+	# ADIOS libraries in the link.  Therefore, use the regular
+	# linker but pass the TAU libraries and flags to the link.
 	ADIOS_CLIB=$(shell tau_cc.sh -tau:showlibs) $(shell adios_config -l)
+	LINKER=mpicc
+else
+	CC=mpicc
+	FC=mpif90
+	ADIOS_CLIB=$(shell adios_config -l)
 	LINKER=$(CC)
 endif
 
