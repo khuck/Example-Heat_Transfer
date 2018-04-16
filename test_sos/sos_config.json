@@ -16,7 +16,7 @@
     },
 	"server_timeout":1,
 	"exit_after_n_timeouts":3,
-	"clean_database_after_frame":false,
+	"clean_database_after_frame":true,
     "events":{
         "counters":[
             "TAU_COUNTER:0:Max:Peak Memory Usage Resident Set Size (VmHWM) (KB)",
