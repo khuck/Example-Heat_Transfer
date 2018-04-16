@@ -17,3 +17,4 @@ test_sos/*.out
 test_sos/sosd.000*
 *.o
 stage_write/*.o
+stage_write/stage_write
