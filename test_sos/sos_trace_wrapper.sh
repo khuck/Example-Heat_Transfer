@@ -39,4 +39,4 @@ if [ "${myarch}" == "titan" ] ; then
 fi
 
 # launch!
-python ./tau_trace_adios.py >& sosa.out
+python sos_flow_experiments/sos_scripts/TAU_trace_to_SOS_to_ADIOS/tau_trace_adios.py/tau_trace_adios.py >& sosa.out
