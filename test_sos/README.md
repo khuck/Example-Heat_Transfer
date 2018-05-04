@@ -1,6 +1,8 @@
 # How to run the Heat Transfer example with TAU and SOSflow
 
-The following instructions assume a generic x86_64 cluster.
+The following instructions assume a generic x86_64 cluster.  For instructions on how
+to run on Cori, see [README-Cori.md](README-Cori.md).  For instructions on how to 
+run on Titan, see [README-Titan.md](README-Titan.md)
 
 ## Dependencies
 

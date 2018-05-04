@@ -1,18 +1,14 @@
 ifeq ($(TAU),1)
-	CC=tau_cc.sh -optTauSelectFile=select.tau
+	CC=tau_cc.sh -optTauSelectFile=select.tau -optShared
 	# Unfortunately, the TAU linker wrapper reorders libraries,
 	# and we want to ensure that the TAU libraries go before the
 	# ADIOS libraries in the link.  Therefore, use the regular
 	# linker but pass the TAU libraries and flags to the link.
-	ADIOS_CLIB=$(shell tau_cc.sh -tau:showlibs) $(shell adios_config -l)
-	LINKER=mpicc
 else
 	CC=mpicc
-	FC=mpif90
-	ADIOS_CLIB=$(shell adios_config -l)
-	LINKER=$(CC)
 endif
 
+ADIOS_CLIB=$(shell adios_config -l)
 CFLAGS=-g -Og
 FFLAGS=-g -Og -Wall #-fcheck=bounds #-fcheck=array-temps
 LDFLAGS=-g -Og
@@ -30,11 +26,11 @@ OBJS = utils.o decompose_block.o
 
 stage_write: ${OBJS} stage_write.o
 
-	${LINKER} ${LDFLAGS} -o stage_write ${OBJS} stage_write.o ${ADIOS_CLIB}
+	${CC} ${LDFLAGS} -o stage_write ${OBJS} stage_write.o ${ADIOS_CLIB}
 	@echo "Done"
 
 test_decompose: ${OBJS} test_decompose.o 
-	${LINKER} ${LDFLAGS} -o test_decompose ${OBJS} test_decompose.o ${ADIOS_CLIB}
+	${CC} ${LDFLAGS} -o test_decompose ${OBJS} test_decompose.o ${ADIOS_CLIB}
 
 clean:
 	rm -f *.o *.mod *.fh core.*

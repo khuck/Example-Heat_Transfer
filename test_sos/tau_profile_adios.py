@@ -116,6 +116,11 @@ def parseConfigFile():
         config["adios_method"] = "POSIX"
     if "clean_database_after_frame" not in config:
         config["clean_database_after_frame"] = False
+    if "server_timeout" not in config:
+        # Specified in seconds
+        config["server_timeout"] = 1
+    if "exit_after_n_timeouts"] not in config:
+        config["exit_after_n_timeouts"] = 100
 
 #####
 #

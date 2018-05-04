@@ -11,3 +11,10 @@ query/test_range
 read/heat_print.mod
 read/heat_read_adios
 read/heat_read_steps
+test_sos/*profile*
+test_sos/staged.bp
+test_sos/*.out
+test_sos/sosd.000*
+*.o
+stage_write/*.o
+stage_write/stage_write
