@@ -1,0 +1,116 @@
+#!/bin/bash -l
+#PBS -N test 
+#PBS -q debug 
+#PBS -A CSC103 
+#PBS -l nodes=3,walltime=00:10:00 
+#PBS -j oe
+#PBS -o both.out
+##send mail for (a)bort, (b)egin, (e)nd
+#PBS -m abe
+
+# echo all commands - for debugging purposes
+# set -x
+
+###
+# -------------------- set the environment -------------------- #
+###
+
+# change to the directory where we were launched
+cd $PBS_O_WORKDIR
+
+# get the current working directory
+export cwd=`pwd`
+echo ${cwd}
+# timestamp
+date
+
+source /lustre/atlas/world-shared/csc143/khuck/CODAR/sourceme-titan-gcc.sh
+
+# cleanup, just in case
+rm -rf staged.bp* conf ht.out sw.out sosd.* tau-metrics.* *_profiles
+killall -9 aprun
+
+export SOS_CMD_PORT=22500
+export SOS_WORK=${cwd}
+export SOS_EVPATH_MEETUP=${cwd}
+#export SOS_BATCH_ENVIRONMENT=1
+export SOS_IN_MEMORY_DATABASE=1
+export SOS_EXPORT_DB_AT_EXIT=VERBOSE
+#export SOS_WORK_DIR=/dev/shm
+export SOS_WORK_DIR=${cwd}
+export sos_cmd="${cwd}/sosd -l 5 -a 1 -w ${SOS_WORK_DIR}"
+export SOS_FORK_COMMAND="${sos_cmd} -k @LISTENER_RANK@ -r listener"
+
+###
+# -------------------- Launch the SOS aggregator -------------- #
+###
+
+# launch the aggregator - ALPS will take the first node of the allocation
+# and the aggregator will be "rank" 0 in the SOS processes. Launch
+# in the background, so we can continue launching other aprun calls.
+aprun -n 1 -N 1 ${cwd}/sos_wrapper.sh ${sos_cmd} -k 0 -r aggregator &
+#aprun -n 1 -N 1 ${sos_cmd} -k 0 -r aggregator &
+sleep 10
+
+###
+# --------- Set some common settings for the applications ----- #
+###
+
+export TAU_PLUGINS=libTAU-sos-plugin.so
+export TAU_PLUGINS_PATH=${basedir}/install/tau/craycnl/lib/shared-gnu-papi-mpi-pthread-pdt-sos-adios
+#export TAU_SOS_SELECTION_FILE=`pwd`/sos_filter.txt
+export TAU_METRICS=TIME:PAPI_FP_OPS
+export TAU_COMM_MATRIX=1
+export TAU_SHOW_MEMORY_FUNCTIONS=1
+export TAU_TRACK_HEAP=1
+export TAU_TRACK_MEMORY_FOOTPRINT=1
+export TAU_TRACK_IO_PARAMS=1
+#export TAU_SOS_TRACE_ADIOS=1
+export TAU_SOS_TRACING=1
+export SOS_IN_MEMORY_DATABASE=1
+export TAU_SOS_SHUTDOWN_DELAY_SECONDS=60
+export TAU_SOS_PERIODIC=1
+export TAU_SOS_PERIOD=5000000
+
+###
+# --------- Launch the listener app in the pipeline ----------- #
+###
+
+# 1 node doing heat transfer
+# ALPS will take the second node(s) of the allocation
+# Tell SOS how many application ranks per node there are
+export SOS_APP_RANKS_PER_NODE=16
+# Tell SOS what "rank" it's listeners should start with - the
+# aggregator was "rank" 0, so this node's listener will be 1
+export SOS_LISTENER_RANK_OFFSET=1
+# Where should TAU write the profile data?
+export PROFILEDIR=writer_profiles
+mkdir writer_profiles
+
+echo "Launching heat_transfer_adios..."
+#aprun -n 64 -N 16 ./heat_transfer_adios2 heat 8 8 256 256  10 500 & # >& ht.out &
+aprun -n 16 -N 16 ./heat_transfer_adios2 heat 4 4 256 256  10 500 & # >& ht.out &
+#aprun -n 1 -N 1 ./heat_transfer_adios2 heat 1 1 120 50  10 500 & # >& ht.out &
+sleep 5
+
+# last 4 nodes doing xmain
+# ALPS will take the third, fourth, fifth, sixth nodes of the allocation
+# Tell SOS how many application ranks per node there are
+export SOS_APP_RANKS_PER_NODE=16
+# Tell SOS what "rank" it's listeners should start with - the
+# aggregator was "rank" 0, and the reader node was 1, 
+# so this node's listeners will start at 2 and be 2,3,4,5
+export SOS_LISTENER_RANK_OFFSET=2
+# Where should TAU write the profile data?
+export PROFILEDIR=reader_profiles
+mkdir reader_profiles
+#export TAU_VERBOSE=1
+
+echo "Launching stage_write..."
+aprun -n 4 -N 4 ./stage_write heat.bp staged.bp FLEXPATH "" MPI "" >& sw.out
+#aprun -n 1 -N 1 ./stage_write heat.bp staged.bp FLEXPATH "" MPI "" >& sw.out
+echo "done, exiting..."
+sleep 2
+
+#killall -9 aprun 
+
