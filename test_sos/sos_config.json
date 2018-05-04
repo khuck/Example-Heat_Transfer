@@ -10,9 +10,9 @@
 	"adios_method":"POSIX",
     "aggregators":{
         "count":1,
-        "expected_pubs":8,
+        "expected_pubs":20,
         "runtime":true,
-        "maxframe":12
+        "maxframe":10
     },
 	"server_timeout":1,
 	"exit_after_n_timeouts":3,

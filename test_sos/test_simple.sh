@@ -11,7 +11,7 @@ if [ ! -f dataspaces.conf ] ; then
     ln -s ../dataspaces.conf dataspaces.conf
 fi
 if [ ! -f dataspaces_server ] ; then
-    ln -s ${HOME}/install/dataspaces/1.6.2/bin/dataspaces_server dataspaces_server 
+    ln -s ${basedir}/install/dataspaces/1.6.2/bin/dataspaces_server dataspaces_server 
 fi
 if [ ! -f heat_transfer_adios2 ] ; then
     ln -s ../heat_transfer_adios2 heat_transfer_adios2 
@@ -24,7 +24,7 @@ if [ ! -f stage_write ] ; then
 fi
 
 if [ ! -f sosd ] ; then
-    thepath=${HOME}/install/sos_flow/bin/sosd
+    thepath=${basedir}/install/sos_flow/bin/sosd
     if [ ! -f ${thepath} ] ; then
         echo "Error! ${thepath} not found. Exiting."
         kill -INT $$
@@ -32,7 +32,7 @@ if [ ! -f sosd ] ; then
     ln -s ${thepath} sosd 
 fi
 if [ ! -f sosd_stop ] ; then
-    thepath=${HOME}/install/sos_flow/bin/sosd_stop
+    thepath=${basedir}/install/sos_flow/bin/sosd_stop
     if [ ! -f ${thepath} ] ; then
         echo "Error! ${thepath} not found. Exiting."
         kill -INT $$
@@ -47,10 +47,10 @@ export SOS_EVPATH_MEETUP=`pwd`
 #export SOS_IN_MEMORY_DATABASE=1
 
 sos_launch() {
-    sospath=${HOME}/install/sos_flow
+    sospath=${basedir}/install/sos_flow
     export PATH=$PATH:$sospath/bin
     export PYTHONPATH=$sospath/bin:$sospath/lib:$PYTHONPATH:`pwd`
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`:$sospath/lib:${HOME}/install/chaos-stable/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`:$sospath/lib:${basedir}/install/chaos-stable/lib
 
     echo "Launching SOS..."
     ./sosd -l 0 -a 1 -k 0 -r aggregator -w ${SOS_WORK} >& sosd.out &
@@ -65,7 +65,7 @@ workflow() {
     #export TAU_SOS_PERIODIC=1
     #export TAU_SOS_PERIOD=1000000
     export TAU_PLUGINS=libTAU-sos-plugin.so
-    export TAU_PLUGINS_PATH=${HOME}/src/tau2/x86_64/lib/shared-papi-mpi-pthread-pdt-sos-adios
+    export TAU_PLUGINS_PATH=${basedir}/src/tau2/x86_64/lib/shared-papi-mpi-pthread-pdt-sos-adios
     export TAU_SOS_SELECTION_FILE=`pwd`/sos_filter.txt
     export TAU_METRICS=TIME:PAPI_FP_OPS:PAPI_TOT_INS
     export TAU_SOS_TRACE_ADIOS=1
