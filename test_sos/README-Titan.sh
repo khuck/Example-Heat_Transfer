@@ -48,7 +48,7 @@ sure that the same ADIOS transfer method is set, similar to previous example):
 
 ```bash
 # For profile collection:
-sbatch run_titan_profile.slurm
+sbatch run_titan_profile.pbs
 # For trace collection:
-sbatch run_titan_trace.slurm
+sbatch run_titan_trace.pbs
 ```
