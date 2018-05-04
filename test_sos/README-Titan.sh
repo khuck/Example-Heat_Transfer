@@ -22,14 +22,14 @@ cd ..
 
 ## Set up and run the example:
 
-Make sure that both heat_transfer.xml and run_cori.slurm specify the same
+Make sure that both heat_transfer.xml and run_titan_small.pbs specify the same
 ADIOS transfer method (either DATASPACES or FLEXPATH).
 
 ```
 cd test_sos
 cp ../heat_transfer.xml .
 cp ../dataspaces.conf .
-sbatch run_cori.slurm
+sbatch run_titan_small.pbs
 ```
 
 ## To add ADIOS profile/trace extraction:

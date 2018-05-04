@@ -38,7 +38,9 @@ In the test_sos directory, clone the SOS scripts repo:
 
 ```
 cd test_sos
-git submodule foreach --recursive git checkout master
+git submodule update --recursive --remote
+git submodule update --init sos_flow_experiments
+git submodule foreach git pull origin master
 ```
 
 Then run the example set up for profile extraction or trace extraction (making
