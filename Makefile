@@ -2,13 +2,16 @@
 ADIOS_DIR=$(shell adios_config -d)
 ADIOS_FINC=$(shell adios_config -c -f)
 ADIOS_FLIB=$(shell adios_config -l -f)
+#-lzstd -L/global/project/projectdirs/m3084/cluster2018/sw/spack/opt/spack/cray-CNL-haswell/gcc-7.1.0/snappy-1.1.7-vloyjsf2ryghl3dpdq7wrwpdqdf2wcmm/lib -lsnappy
 
 ifeq ($(TAU),1)
 	CC=tau_cc.sh
-	FC=tau_f90.sh -optTauSelectFile=select.tau -optShared
+	FC=tau_f90.sh -optTauSelectFile=select.tau -optTrackIO -optShared
 else
-	CC=mpicc
-	FC=mpif90
+	#CC=mpicc
+	#FC=mpif90
+	CC=cc
+	FC=ftn
 endif
 
 CFLAGS=-g -O3

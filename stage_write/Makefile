@@ -1,13 +1,15 @@
+include ${TAU_MAKEFILE}
 ifeq ($(TAU),1)
-	CC=tau_cc.sh -optTauSelectFile=select.tau -optShared
+	CC=tau_cc.sh -optTauSelectFile=select.tau -optTrackIO -optShared
 	# Unfortunately, the TAU linker wrapper reorders libraries,
 	# and we want to ensure that the TAU libraries go before the
 	# ADIOS libraries in the link.  Therefore, use the regular
 	# linker but pass the TAU libraries and flags to the link.
 else
-	CC=mpicc
+	CC=cc
 endif
 
+#ADIOS_CLIB=$(shell tau_cc.sh -tau:showsharedlibs) $(shell adios_config -l)
 ADIOS_CLIB=$(shell adios_config -l)
 CFLAGS=-g -Og
 FFLAGS=-g -Og -Wall #-fcheck=bounds #-fcheck=array-temps
