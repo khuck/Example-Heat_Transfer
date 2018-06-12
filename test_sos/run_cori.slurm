@@ -5,8 +5,10 @@
 #SBATCH -p debug
 #SBATCH -C haswell
 #SBATCH -t 00:15:00
-#SBATCH -o ${SLURM_SUBMIT_DIR}/run_sos-%j.out
+#SBATCH -o run_sos-%j.out
 #SBATCH -A m3084
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=khuck@cs.uoregon.edu
 
 ###
 #
@@ -39,7 +41,7 @@ export cwd=`pwd`
 echo ${cwd}
 
 # Set up modules, set paths
-source /global/project/projectdirs/m3084/cluster2018/khuck/sourceme-cori-gcc-spack.sh
+source /global/project/projectdirs/m3084/cluster2018/khuck/sourceme-cori-gcc-debug.sh
 
 # cleanup, just in case
 rm -rf staged.bp* conf ht.out sw.out sosd.* tau-metrics.* *_profiles
@@ -49,7 +51,8 @@ rm -rf staged.bp* conf ht.out sw.out sosd.* tau-metrics.* *_profiles
 ###
 
 # launch the dataspaces server - Slurm will take the first node of the allocation
-echo "Launching Dataspaces..."
+
+#echo "Launching Dataspaces..."
 srun -n 1 -N 1 dataspaces_server -s 1 -c 20 &
 
 while [ ! -f conf ]; do
@@ -95,7 +98,8 @@ export SOS_FORK_COMMAND="${sos_cmd} -k @LISTENER_RANK@ -r listener"
 # in the background, so we can continue launching other srun calls.
 echo "Launching sosd aggregator"
 ulimit -c unlimited
-srun -n 1 -N 1 -c 8 ${sos_cmd} -k 0 -r aggregator >& sosd.out &
+#srun -n 1 -N 1 -c 8 ${sos_cmd} -k 0 -r aggregator >& sosd.out &
+touch sosd.00000.key
 
 # Wait for the EVPath discovery information
 while [ ! -f sosd.00000.key ]; do
@@ -108,7 +112,7 @@ echo "got config, continuing"
 ###
 
 # What is the name of the TAU SOS plugin?
-export TAU_PLUGINS=libTAU-sos-plugin.so
+#export TAU_PLUGINS=libTAU-sos-plugin.so
 # Where can TAU find the SOS plugin?
 export TAU_PLUGINS_PATH=/global/project/projectdirs/m3084/cluster2018/tau/tau/craycnl/lib/shared-gnu-papi-mpi-pthread-pdt-sos-adios
 # Should we filter the data going to SOS from TAU?
@@ -159,6 +163,7 @@ export PROFILEDIR=reader_profiles
 mkdir reader_profiles
 
 echo "Launching stage_write..."
+#srun -n 4 -N 1 /global/project/projectdirs/m3084/cluster2018/khuck/Example-Heat_Transfer/stage_write/stage_write heat.bp staged.bp DATASPACES "" POSIX "" >& sw.out
 srun -n 4 -N 1 /global/project/projectdirs/m3084/cluster2018/khuck/Example-Heat_Transfer/stage_write/stage_write heat.bp staged.bp DATASPACES "" POSIX "" >& sw.out
 echo "done, exiting..."
 sleep 10
